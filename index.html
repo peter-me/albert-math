@@ -378,6 +378,47 @@
       cursor: pointer;
     }
 
+    /* ── COUNT TOGETHER TOGGLE ── */
+    #countToggleWrap {
+      width: 100%;
+      max-width: 700px;
+      display: flex;
+      justify-content: center;
+    }
+    #countToggleBtn {
+      background: white;
+      border: 2px solid #AED581;
+      border-radius: 99px;
+      padding: 9px 24px;
+      font-size: 15px;
+      font-weight: 600;
+      color: #558B2F;
+      cursor: pointer;
+      transition: all 0.15s;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.07);
+    }
+    #countToggleBtn.active {
+      background: #43A047;
+      border-color: #43A047;
+      color: white;
+      box-shadow: 0 3px 10px rgba(67,160,71,0.4);
+    }
+
+    /* ── DINO APPEAR ANIMATION ── */
+    .q-dino.q-hidden {
+      opacity: 0;
+      transform: scale(0);
+      display: inline-block;
+    }
+    @keyframes dinoAppear {
+      0%   { opacity: 0; transform: scale(0); }
+      60%  { transform: scale(1.4); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+    .q-dino.q-pop {
+      animation: dinoAppear 0.3s cubic-bezier(0.22,1,0.36,1) forwards;
+    }
+
     /* ── RESPONSIVE ── */
     @media (max-width: 620px) {
       #blackboardContainer { display: none; }
@@ -405,6 +446,11 @@
       <div id="xpBarOuter"><div id="xpBarFill"></div></div>
     </div>
     <div id="streakDisplay">🔥 <span id="streakCount">0</span></div>
+  </div>
+
+  <!-- ═══ COUNT TOGETHER TOGGLE ═══ -->
+  <div id="countToggleWrap">
+    <button id="countToggleBtn" onclick="toggleCountMode()">🦕 Tæl sammen: FRA</button>
   </div>
 
   <!-- ═══ MAIN CONTAINER ═══ -->
@@ -504,6 +550,7 @@
   let wrongAttempts   = 0;
   let currentInput    = '';
   let blocked         = false; // true while auto-advancing
+  let countTogether   = false;
 
   function rand(min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -518,10 +565,12 @@
 
   // Build the visual dino question HTML
   function buildQuestionHTML(q, revealAnswer) {
+    const hideIcons = countTogether && !revealAnswer;
     function dinoIcons(n) {
       let html = '';
       for (let i = 0; i < n; i++) {
-        html += `<span class="q-dino">${DINO}</span>`;
+        const cls = hideIcons ? ' q-hidden' : '';
+        html += `<span class="q-dino${cls}">${DINO}</span>`;
       }
       return html;
     }
@@ -560,6 +609,40 @@
     currentQuestion = generateQuestion();
     document.getElementById('questionDisplay').innerHTML =
       buildQuestionHTML(currentQuestion, false);
+
+    if (countTogether) {
+      enableSubmit(false);
+      animateDinos();
+    }
+  }
+
+  function animateDinos() {
+    const groups = document.querySelectorAll('.q-dinos');
+    let t = 0;
+    const perDino = 500; // ms between each dino pop
+    const pause   = 400; // ms pause between the two groups
+
+    groups.forEach((group, gi) => {
+      if (gi > 0) t += pause;
+      group.querySelectorAll('.q-hidden').forEach(dino => {
+        setTimeout(() => {
+          dino.classList.remove('q-hidden');
+          dino.classList.add('q-pop');
+        }, t);
+        t += perDino;
+      });
+    });
+
+    setTimeout(() => enableSubmit(true), t + 300);
+  }
+
+  function toggleCountMode() {
+    countTogether = !countTogether;
+    const btn = document.getElementById('countToggleBtn');
+    btn.classList.toggle('active', countTogether);
+    btn.textContent = countTogether ? '🦕 Tæl sammen: TIL' : '🦕 Tæl sammen: FRA';
+    // Restart current question so it reflects the new mode
+    if (currentQuestion) advanceQuestion();
   }
 
   // ═══════════════════════════════════════════
