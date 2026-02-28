@@ -511,8 +511,8 @@
 
   function generateQuestion() {
     const cfg  = getLevelCfg(state.level);
-    const num1 = rand(0, cfg.maxNum);
-    const num2 = rand(0, cfg.maxNum);
+    const num1 = rand(1, cfg.maxNum);
+    const num2 = rand(1, cfg.maxNum);
     return { num1, num2, answer: num1 + num2 };
   }
 
@@ -630,7 +630,7 @@
 
     if (!leveledUp) {
       blocked = true;
-      setTimeout(advanceQuestion, 1100);
+      setTimeout(advanceQuestion, 2000);
     }
     // If leveled up, awardXP shows the modal and advanceQuestion is called from closeLevelUp
   }
